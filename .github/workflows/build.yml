@@ -1,0 +1,54 @@
+name: Build KAI Aggregator
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: |
+          python -m pip install --upgrade pip
+          pip install PyQt6 cryptography openai pyinstaller
+      - run: |
+          pyinstaller \
+            --windowed --noconfirm --name="KAI_Aggregator" \
+            --paths=. --collect-all PyQt6 --collect-all cryptography \
+            --collect-all openai \
+            --add-data="core:core" --add-data="ui:ui" --add-data="data:data" \
+            --hidden-import=core.crypto --hidden-import=core.license \
+            --hidden-import=core.machine \
+            --hidden-import=ui.main_window --hidden-import=ui.license_view \
+            --hidden-import=ui.deepseek_view --hidden-import=ui.notes_view \
+            --hidden-import=ui.c_editor --hidden-import=ui.meet_view \
+            --hidden-import=ui.left_panel --hidden-import=ui.right_panel \
+            --hidden-import=ui.cards --hidden-import=ui.theme \
+            --hidden-import=ui.icons --hidden-import=data.fake_data \
+            main.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kai-macos
+          path: dist/KAI_Aggregator.app
+
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: |
+          python -m pip install --upgrade pip
+          pip install PyQt6 cryptography openai pyinstaller
+      - run: |
+          pyinstaller --windowed --noconfirm --name="KAI_Aggregator" --paths=. --collect-all PyQt6 --collect-all cryptography --collect-all openai --add-data="core;core" --add-data="ui;ui" --add-data="data;data" --hidden-import=core.crypto --hidden-import=core.license --hidden-import=core.machine --hidden-import=ui.main_window --hidden-import=ui.license_view --hidden-import=ui.deepseek_view --hidden-import=ui.notes_view --hidden-import=ui.c_editor --hidden-import=ui.meet_view --hidden-import=ui.left_panel --hidden-import=ui.right_panel --hidden-import=ui.cards --hidden-import=ui.theme --hidden-import=ui.icons --hidden-import=data.fake_data main.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kai-windows
+          path: dist/KAI_Aggregator.exe
